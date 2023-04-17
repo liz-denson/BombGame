@@ -259,6 +259,23 @@ class Wires(PhaseThread):
     def run(self):
         # TODO
         pass
+    
+    def get_int_state(self):
+        state = []
+        for pin in self._component:
+            state.append(pin.value)
+        #ex: state = [F,T,T,F]
+        value = []
+        for s in state:
+            #changes bit to boolean
+            value.append(str(int(s)))
+        #ex: value = ["0", "1", "1", "0"]
+        #prints the string without spaces
+        value = "".join(value)
+        #ex: value = "0110"
+        value = int(value,2)
+        #ex: value = 6
+        return value
 
     # returns the jumper wires state as a string
     def __str__(self):
