@@ -10,7 +10,9 @@ from bomb_configs import *
 from tkinter import *
 import tkinter
 from threading import Thread
-#import pygame
+# import pygame
+## imports pygame for audio
+# import pygame.mixer
 from time import sleep
 import os
 import sys
@@ -66,23 +68,12 @@ class Lcd(Frame):
             # the pause button (pauses the timer)
             self._bpause = tkinter.Button(self, bg="red", fg="white", font=("Courier New", 18), text="Pause", anchor=CENTER, command=self.pause)
             self._bpause.grid(row=6, column=0, pady=40)
+            # the hint button
+            self._bquit = tkinter.Button(self, bg="red", fg="black", font=("Courier New", 18), text="Quit", anchor=CENTER, command=self.quit)
+            self._bquit.grid(row=6, column=2, pady=40)
             # the quit button
             self._bquit = tkinter.Button(self, bg="red", fg="white", font=("Courier New", 18), text="Quit", anchor=CENTER, command=self.quit)
             self._bquit.grid(row=6, column=2, pady=40)
-    # method for the hint button
-    def hint(self):
-        if self._strikes < self._max_strikes:
-            # Pick a random phase
-            random_phase = choice(self._phases)
-
-            # Solve the random phase
-            random_phase._defused = True
-
-            # Add 2 strikes
-            self._strikes += 2
-
-            # Update the strikes label
-            self._lstrikes["text"] = f"Strikes left: {self._max_strikes - self._strikes}"
 
     # lets us pause/unpause the timer (7-segment display)
     def setTimer(self, timer):
@@ -96,6 +87,14 @@ class Lcd(Frame):
     def pause(self):
         if (RPi):
             self._timer.pause()
+            
+    # hint function
+    def hint(self):
+        use_hint()
+        
+    ## method to stop the audio
+    # def stop_audio(self):
+        # pygame.mixer.music.stop()
 
     # setup the conclusion GUI (explosion/defusion)
     def conclusion(self, success=False):
