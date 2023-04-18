@@ -11,7 +11,7 @@ from tkinter import *
 import tkinter
 from threading import Thread
 # import pygame
-## imports pygame for audio
+## import pygame for audio
 # import pygame.mixer
 from time import sleep
 import os
