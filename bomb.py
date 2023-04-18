@@ -8,18 +8,18 @@
 from bomb_configs import *
 # import the phases
 from bomb_phases import *
-## import pygame for audio
-# import pygame.mixer
+# import pygame for audio
+import pygame.mixer
 
 ###########
 # functions
 ###########
 
-## initialize the pygame mixer
-# pygame.mixer.init()
+# initialize the pygame mixer
+pygame.mixer.init()
 
-## load the audio file
-# pygame.mixer.music.load('ticking.mp3')
+# load the audio file
+pygame.mixer.music.load('ticking.mp3')
 
 # generates the bootup sequence on the LCD
 def bootup(n=0):
@@ -204,7 +204,7 @@ def turn_off():
         pin.value = True
         
     # stop the audio when the bomb is defused or explodes
-    gui.stop_audio()  # Stop the audio when the bomb is defused or explodes
+    gui.stop_audio()  # stop the audio when the bomb is defused or explodes
 
 ######
 # MAIN
