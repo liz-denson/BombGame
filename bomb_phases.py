@@ -11,8 +11,8 @@ from tkinter import *
 import tkinter
 from threading import Thread
 # import pygame
-## import pygame for audio
-# import pygame.mixer
+# import pygame for audio
+import pygame.mixer
 from time import sleep
 import os
 import sys
@@ -92,9 +92,9 @@ class Lcd(Frame):
     def hint(self):
         use_hint()
         
-    ## method to stop the audio
-    # def stop_audio(self):
-        # pygame.mixer.music.stop()
+    # method to stop the audio
+    def stop_audio(self):
+        pygame.mixer.music.stop()
 
     # setup the conclusion GUI (explosion/defusion)
     def conclusion(self, success=False):
