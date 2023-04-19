@@ -43,10 +43,10 @@ def bootup(n=0):
         # scroll the next character after a slight delay (\x00 is a longer delay)
         gui.after(25 if boot_text[n] != "\x00" else 750, bootup, n + 1)
         
-        # play the audio when the bootup sequence is finished
+        # play the audio when the bootup sequence ends
         if n == 0:
-            pygame.mixer.music.play(-1)  # the argument makes the audio loop indefinitely
-
+            pygame.mixer.music.play(-1) # the argument makes the audio play indefinitely
+        
 # sets up the phase threads
 def setup_phases():
     global timer, keypad, wires, button, toggles
@@ -179,12 +179,12 @@ def use_hint():
     if active_phases_list:
         chosen_phase = random.choice(active_phases_list)
         
-    # solve the chosen phase
+        # solve the chosen phase
         chosen_phase._defused = True
         chosen_phase._running = False
         active_phases -= 1
         
-    # add 2 strikes
+        # decrease strikes left by 2
         strikes_left = max(0, strikes_left - 2)
 
 # turns off the bomb
@@ -202,16 +202,14 @@ def turn_off():
     # turn off the pushbutton's LED
     for pin in button._rgb:
         pin.value = True
-        
+    
     # stop the audio when the bomb is defused or explodes
-    gui.stop_audio()  # stop the audio when the bomb is defused or explodes
+    # gui.stop_audio()
+    ticking_audio.stop()
 
 ######
 # MAIN
 ######
-
-# initialize pygame
-#pygame.init()
 
 # initialize the LCD GUI
 window = Tk()
