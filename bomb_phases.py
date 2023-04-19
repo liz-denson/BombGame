@@ -68,9 +68,6 @@ class Lcd(Frame):
             # the pause button (pauses the timer)
             self._bpause = tkinter.Button(self, bg="green", fg="white", font=("Courier New", 18), text="Pause", anchor=CENTER, command=self.pause)
             self._bpause.grid(row=6, column=0, pady=40)
-            # the hint button
-            self._bhint = tkinter.Button(self, bg="yellow", fg="black", font=("Courier New", 18), text="Hint", anchor=CENTER, command=self.quit)
-            self._bquit.grid(row=6, column=1, pady=40)
             # the quit button
             self._bquit = tkinter.Button(self, bg="red", fg="white", font=("Courier New", 18), text="Quit", anchor=CENTER, command=self.quit)
             self._bquit.grid(row=6, column=2, pady=40)
