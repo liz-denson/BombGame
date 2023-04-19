@@ -70,7 +70,7 @@ class Lcd(Frame):
             self._bpause.grid(row=6, column=0, pady=40)
             # the hint button
             self._bhint = tkinter.Button(self, bg="yellow", fg="black", font=("Courier New", 18), text="Hint", anchor=CENTER, command=self.quit)
-            self._bhint.grid(row=6, column=1, pady=40)
+            self._bquit.grid(row=6, column=1, pady=40)
             # the quit button
             self._bquit = tkinter.Button(self, bg="red", fg="white", font=("Courier New", 18), text="Quit", anchor=CENTER, command=self.quit)
             self._bquit.grid(row=6, column=2, pady=40)
@@ -87,10 +87,6 @@ class Lcd(Frame):
     def pause(self):
         if (RPi):
             self._timer.pause()
-            
-    # hint function
-    def hint(self):
-        use_hint()
         
     # method to stop the audio
     def stop_audio(self):
@@ -168,6 +164,11 @@ class Timer(PhaseThread):
         # by default, each tick is 1 second
         self._interval = 1
 
+    # updates the timer (only internally called)
+    def _update(self):
+        self._min = f"{self._value // 60}".zfill(2)
+        self._sec = f"{self._value % 60}".zfill(2)
+
     # runs the thread
     def run(self):
         self._running = True
@@ -184,11 +185,6 @@ class Timer(PhaseThread):
                 self._value -= 1
             else:
                 sleep(0.1)
-
-    # updates the timer (only internally called)
-    def _update(self):
-        self._min = f"{self._value // 60}".zfill(2)
-        self._sec = f"{self._value % 60}".zfill(2)
 
     # pauses and unpauses the timer
     def pause(self):
@@ -254,7 +250,7 @@ class Wires(PhaseThread):
         state = []
         for pin in self._component:
             state.append(pin.value)
-        #ex: state = [F,T,T,F
+        #ex: state = [ "F", "T", "T", "F" ]
         value = []
         for s in state:
             #changes bit to boolean
@@ -331,16 +327,39 @@ class Button(PhaseThread):
 class Toggles(PhaseThread):
     def __init__(self, component, target, name="Toggles"):
         super().__init__(name, component, target)
+        self._value = self._get_int_value()
+        self._prev_value = self._value  # set the previous value to the initial value
 
     # runs the thread
     def run(self):
-        # TODO
-        pass
+        while (self.running):
+            self._value = self._get_int_value()  # update the current value of the toggle switches
+            if (self._value == self._target):  # check if the target state is reached
+                self._defused = True  # set the phase as defused
+            elif (self._value != self._prev_value):  # check if the toggle switches state has changed
+                if (self._check_wrong_state()):  # check if the changed state is wrong
+                    self._failed = True  # set the phase as failed
+                self._prev_value = self._value  # update the previous value with the current value
+            
+            sleep(0.1)  # sleep for a short period of time
 
-    # returns the toggle switches state as a string
+    def _get_int_value(self):
+        # get the boolean values of the toggle switches and convert them to an integer value
+        values = [pin.value for pin in self._component]  
+        bit_values = [str(int(v)) for v in values]  # convert the boolean values to 0's and 1's
+        int_value = int("".join(bit_values), 2)  # convert the binary string to an integer
+        return int_value  # return the integer value of the toggle switches
+        
+    def _check_wrong_state(self):
+        current = bin(self._value)[2:].zfill(4)  # convert the current value to a binary string with 4 digits
+        prev = bin(self._prev_value)[2:].zfill(4)  # convert the previous value to a binary string with 4 digits
+        target = bin(self._target)[2:].zfill(4)  # convert the target value to a binary string with 4 digits
+        # check if any of the toggles are in the wrong state using list comprehension
+        return any([target[i] != current[i] for i in range(len(current)) if current[i] != prev[i]])
+
     def __str__(self):
         if (self._defused):
-            return "DEFUSED"
+            return "DEFUSED"  # if the phase is defused, return "DEFUSED"
         else:
-            # TODO
-            pass
+            # otherwise, return the binary string and integer value of the toggle switches
+            return f"{bin(self._value)[2:].zfill(4)}/{self._value}"
