@@ -9,17 +9,16 @@ from bomb_configs import *
 # import the phases
 from bomb_phases import *
 # import pygame for audio
-import pygame.mixer
-
+#import pygame.mixer
 ###########
 # functions
 ###########
 
 # initialize the pygame mixer
-pygame.mixer.init()
+#pygame.mixer.init()
 
 # load the audio file
-pygame.mixer.music.load('ticking.mp3')
+#pygame.mixer.music.load('ticking.mp3')
 
 # generates the bootup sequence on the LCD
 def bootup(n=0):
@@ -46,7 +45,6 @@ def bootup(n=0):
         # play the audio when the bootup sequence ends
         if n == 0:
             pygame.mixer.music.play(-1) # the argument makes the audio play indefinitely
-        
 # sets up the phase threads
 def setup_phases():
     global timer, keypad, wires, button, toggles
@@ -169,23 +167,6 @@ def strike():
     
     # note the strike
     strikes_left -= 1
-    
-# a function that chooses a random active phase to solve and adds 2 strikes to the player's count
-def use_hint():
-    global strikes_left, active_phases
-    
-    # pick a random phase from the list of active phases
-    active_phases_list = [phase for phase in [keypad, wires, button, toggles] if phase._running]
-    if active_phases_list:
-        chosen_phase = random.choice(active_phases_list)
-        
-        # solve the chosen phase
-        chosen_phase._defused = True
-        chosen_phase._running = False
-        active_phases -= 1
-        
-        # decrease strikes left by 2
-        strikes_left = max(0, strikes_left - 2)
 
 # turns off the bomb
 def turn_off():
@@ -205,7 +186,7 @@ def turn_off():
     
     # stop the audio when the bomb is defused or explodes
     # gui.stop_audio()
-    ticking_audio.stop()
+    #ticking_audio.stop()
 
 ######
 # MAIN

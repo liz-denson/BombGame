@@ -10,9 +10,7 @@ from bomb_configs import *
 from tkinter import *
 import tkinter
 from threading import Thread
-# import pygame
-# import pygame for audio
-import pygame.mixer
+#import pygame
 from time import sleep
 import os
 import sys
@@ -66,11 +64,14 @@ class Lcd(Frame):
         self._lstrikes.grid(row=5, column=2, sticky=W)
         if (SHOW_BUTTONS):
             # the pause button (pauses the timer)
-            self._bpause = tkinter.Button(self, bg="green", fg="white", font=("Courier New", 18), text="Pause", anchor=CENTER, command=self.pause)
+            self._bpause = tkinter.Button(self, bg="red", fg="white", font=("Courier New", 18), text="Pause", anchor=CENTER, command=self.pause)
             self._bpause.grid(row=6, column=0, pady=40)
             # the quit button
             self._bquit = tkinter.Button(self, bg="red", fg="white", font=("Courier New", 18), text="Quit", anchor=CENTER, command=self.quit)
             self._bquit.grid(row=6, column=2, pady=40)
+            
+            self._bhint = tkinter.Button(self, bg="red", fg="white", font=("Courier New", 18), text="Hint", anchor=CENTER, command=self.quit)
+            self._bhint.grid(row=6, column=1, pady=40)
 
     # lets us pause/unpause the timer (7-segment display)
     def setTimer(self, timer):
@@ -84,10 +85,6 @@ class Lcd(Frame):
     def pause(self):
         if (RPi):
             self._timer.pause()
-        
-    # method to stop the audio
-    def stop_audio(self):
-        pygame.mixer.music.stop()
 
     # setup the conclusion GUI (explosion/defusion)
     def conclusion(self, success=False):
@@ -116,7 +113,22 @@ class Lcd(Frame):
         # re-launch the program (and exit this one)
         os.execv(sys.executable, ["python3"] + [sys.argv[0]])
         exit(0)
+    
+    # method for the hint button
+    def hint(self):
+        if self._strikes < self._max_strikes:
+            # Pick a random phase
+            random_phase = choice(self._phases)
 
+            # Solve the random phase
+            random_phase._defused = True
+
+            # Add 2 strikes
+            self._strikes += 2
+
+            # Update the strikes label
+            self._lstrikes["text"] = f"Strikes left: {self._max_strikes - self._strikes}"
+    
     # quits the GUI, resetting some components
     def quit(self):
         if (RPi):
@@ -161,11 +173,6 @@ class Timer(PhaseThread):
         # by default, each tick is 1 second
         self._interval = 1
 
-    # updates the timer (only internally called)
-    def _update(self):
-        self._min = f"{self._value // 60}".zfill(2)
-        self._sec = f"{self._value % 60}".zfill(2)
-
     # runs the thread
     def run(self):
         self._running = True
@@ -182,6 +189,11 @@ class Timer(PhaseThread):
                 self._value -= 1
             else:
                 sleep(0.1)
+
+    # updates the timer (only internally called)
+    def _update(self):
+        self._min = f"{self._value // 60}".zfill(2)
+        self._sec = f"{self._value % 60}".zfill(2)
 
     # pauses and unpauses the timer
     def pause(self):
@@ -231,43 +243,6 @@ class Keypad(PhaseThread):
             return "DEFUSED"
         else:
             return self._value
-
-# the jumper wires phase
-class Wires(PhaseThread):
-    def __init__(self, component, target, name="Wires"):
-        super().__init__(name, component, target)
-
-    # runs the thread
-    def run(self):
-        # TODO
-        self._running = True
-        while (self._running):
-            pass
-    def get_int_state(self):
-        state = []
-        for pin in self._component:
-            state.append(pin.value)
-        #ex: state = [ "F", "T", "T", "F" ]
-        value = []
-        for s in state:
-            #changes bit to boolean
-            value.append(str(int(s)))
-        #ex: value = ["0","1","1","0"]
-        #prints the string without spaces
-        value = "".join(value)
-        #ex: value = "0110"
-        value = int(value,2)
-        #ex: value = 6
-        return value
-        # returns the jumper wires state as a string
-    def __str__(self):
-        if (self._defused):
-            return "DEFUSED"
-        else:
-            # TODO
-            #return get_int_state or
-            #return number or bit string
-            pass
 
 # the pushbutton phase
 class Button(PhaseThread):
@@ -320,45 +295,71 @@ class Button(PhaseThread):
         else:
             return str("Pressed" if self._value else "Released")
 
-# the toggle switches phase
-class Toggles(PhaseThread):
-    def __init__(self, component, target, name="Toggles"):
+class NumericPhase(PhaseThread):
+    def __init__(self, component, target, name= "Toggles"):
         super().__init__(name, component, target)
         self._value = self._get_int_value()
-        self._prev_value = self._value  # set the previous value to the initial value
-
+        self._prev_value = self._value
+    
     # runs the thread
     def run(self):
-        while (self.running):
-            self._value = self._get_int_value()  # update the current value of the toggle switches
-            if (self._value == self._target):  # check if the target state is reached
+        self._running = True
+        while (self._running):
+            self._value = self._get_int_value()
+            if (self._value == self._target):
                 self._defused = True
-            elif (self._value != self._prev_value):  # check if the toggle switches state has changed
-                if (self._check_wrong_state()):  # check if the changed state is wrong
+            elif (self._value != self._prev_value):
+                if (self._check_wrong_state()):
                     self._failed = True
-                self._prev_value = self._value  # update the previous value with the current value
-            
+                self._prev_value = self._value
+                                
             sleep(0.1)
-
+    
     def _get_int_value(self):
-        # get the boolean values of the toggle switches and convert them to an integer value
-        values = [pin.value for pin in self._component]  
-        bit_values = [str(int(v)) for v in values]
-        int_value = int("".join(bit_values), 2)
-        return int_value
+        values = []
+        for pin in self._component:
+            values.append(pin.value)
         
-    # convert the values to a binary string with 4 digit
+        bit_values = []
+        for v in values:
+            #changes bit to boolean
+            bit_values.append(str(int(v)))
+        
+        #prints the string without spaces
+        int_value = "".join(bit_values)
+        
+        #convert to integer
+        int_value = int(int_value,2)
+        
+        return int_value
+    
     def _check_wrong_state(self):
+        #returns T if a toggle is in wrong position; F otherwise
+        #get index of toggled switch using self._value and self._prev_value
+        #see if the matching index in self._target is correct
         current = bin(self._value)[2:].zfill(4)
         prev = bin(self._prev_value)[2:].zfill(4)
         target = bin(self._target)[2:].zfill(4)
-        # check if any of the toggles are in the wrong state
-        return any([target[i] != current[i] for i in range(len(current)) if current[i] != prev[i]])
-
+        for i in range(len(current)):
+            if (current[i] != prev[i]):
+                #if true returns False; if false returns True 
+                return (not target[i] == current[i])
+                          
+    # returns the toggle switches state as a string
     def __str__(self):
         if (self._defused):
-            # if the phase is defused, return defused
             return "DEFUSED"
         else:
-            # otherwise, return the binary string and integer value of the toggle switches
             return f"{bin(self._value)[2:].zfill(4)}/{self._value}"
+class Toggles(PhaseThread):
+    def __init__(self, component, target, name = "Toggles"):
+        super().__init__(name, component, target)
+        
+
+class Wires(PhaseThread):
+    def __init__(self, component, target, name = "Wires"):
+        super().__init__(name, component, target)
+        
+    
+    
+    
