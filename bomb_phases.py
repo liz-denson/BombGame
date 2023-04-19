@@ -335,31 +335,33 @@ class Toggles(PhaseThread):
         while (self.running):
             self._value = self._get_int_value()  # update the current value of the toggle switches
             if (self._value == self._target):  # check if the target state is reached
-                self._defused = True  # set the phase as defused
+                self._defused = True
             elif (self._value != self._prev_value):  # check if the toggle switches state has changed
                 if (self._check_wrong_state()):  # check if the changed state is wrong
-                    self._failed = True  # set the phase as failed
+                    self._failed = True
                 self._prev_value = self._value  # update the previous value with the current value
             
-            sleep(0.1)  # sleep for a short period of time
+            sleep(0.1)
 
     def _get_int_value(self):
         # get the boolean values of the toggle switches and convert them to an integer value
         values = [pin.value for pin in self._component]  
-        bit_values = [str(int(v)) for v in values]  # convert the boolean values to 0's and 1's
-        int_value = int("".join(bit_values), 2)  # convert the binary string to an integer
-        return int_value  # return the integer value of the toggle switches
+        bit_values = [str(int(v)) for v in values]
+        int_value = int("".join(bit_values), 2)
+        return int_value
         
+    # convert the values to a binary string with 4 digit
     def _check_wrong_state(self):
-        current = bin(self._value)[2:].zfill(4)  # convert the current value to a binary string with 4 digits
-        prev = bin(self._prev_value)[2:].zfill(4)  # convert the previous value to a binary string with 4 digits
-        target = bin(self._target)[2:].zfill(4)  # convert the target value to a binary string with 4 digits
-        # check if any of the toggles are in the wrong state using list comprehension
+        current = bin(self._value)[2:].zfill(4)
+        prev = bin(self._prev_value)[2:].zfill(4)
+        target = bin(self._target)[2:].zfill(4)
+        # check if any of the toggles are in the wrong state
         return any([target[i] != current[i] for i in range(len(current)) if current[i] != prev[i]])
 
     def __str__(self):
         if (self._defused):
-            return "DEFUSED"  # if the phase is defused, return "DEFUSED"
+            # if the phase is defused, return defused
+            return "DEFUSED"
         else:
             # otherwise, return the binary string and integer value of the toggle switches
             return f"{bin(self._value)[2:].zfill(4)}/{self._value}"
