@@ -295,7 +295,7 @@ class Button(PhaseThread):
         else:
             return str("Pressed" if self._value else "Released")
 
-class NumericPhase(PhaseThread):
+class Toggles(PhaseThread):
     def __init__(self, component, target, name= "Toggles"):
         super().__init__(name, component, target)
         self._value = self._get_int_value()
@@ -351,14 +351,63 @@ class NumericPhase(PhaseThread):
             return "DEFUSED"
         else:
             return f"{bin(self._value)[2:].zfill(4)}/{self._value}"
-class Toggles(PhaseThread):
-    def __init__(self, component, target, name = "Toggles"):
-        super().__init__(name, component, target)
         
-
 class Wires(PhaseThread):
     def __init__(self, component, target, name = "Wires"):
         super().__init__(name, component, target)
+        self._value = self._get_int_value()
+        self._prev_value = self._value
+    
+    # runs the thread
+    def run(self):
+        self._running = True
+        while (self._running):
+            self._value = self._get_int_value()
+            if (self._value == self._target):
+                self._defused = True
+            elif (self._value != self._prev_value):
+                if (self._check_wrong_state()):
+                    self._failed = True
+                self._prev_value = self._value
+                                
+            sleep(0.1)
+    
+    def _get_int_value(self):
+        values = []
+        for pin in self._component:
+            values.append(pin.value)
+        
+        bit_values = []
+        for v in values:
+            #changes bit to boolean
+            bit_values.append(str(int(v)))
+        
+        #prints the string without spaces
+        int_value = "".join(bit_values)
+        
+        #convert to integer
+        int_value = int(int_value,2)
+        
+        return int_value
+    
+    def _check_wrong_state(self):
+        #returns T if a toggle is in wrong position; F otherwise
+        #get index of toggled switch using self._value and self._prev_value
+        #see if the matching index in self._target is correct
+        current = bin(self._value)[2:].zfill(4)
+        prev = bin(self._prev_value)[2:].zfill(4)
+        target = bin(self._target)[2:].zfill(4)
+        for i in range(len(current)):
+            if (current[i] != prev[i]):
+                #if true returns False; if false returns True 
+                return (not target[i] == current[i])
+                          
+    # returns the toggle switches state as a string
+    def __str__(self):
+        if (self._defused):
+            return "DEFUSED"
+        else:
+            return f"{bin(self._value)[2:].zfill(4)}/{self._value}"
         
     
     
