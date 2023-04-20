@@ -8,17 +8,13 @@
 from bomb_configs import *
 # import the phases
 from bomb_phases import *
-# import pygame for audio
-#import pygame.mixer
+# import audio
+import audio
+from tkinter import PhotoImage
+
 ###########
 # functions
 ###########
-
-# initialize the pygame mixer
-#pygame.mixer.init()
-
-# load the audio file
-#pygame.mixer.music.load('ticking.mp3')
 
 # generates the bootup sequence on the LCD
 def bootup(n=0):
@@ -44,7 +40,8 @@ def bootup(n=0):
         
         # play the audio when the bootup sequence ends
         if n == 0:
-            pygame.mixer.music.play(-1) # the argument makes the audio play indefinitely
+            audio.play_audio()
+            
 # sets up the phase threads
 def setup_phases():
     global timer, keypad, wires, button, toggles
@@ -140,6 +137,23 @@ def check_phases():
             # reset the toggles
             toggles._failed = False
 
+    if (gui._hint):
+        if (strikes_left > 2):
+            active_threads = []
+            if (keypad._running):
+                active_threads.append(keypad)
+            if (toggles._running):
+                active_threads.append(toggles)
+            if (wires._running):
+                active_threads.append(wires)
+            if (button._running):
+                active_threads.append(button)
+            phase = choice(active_threads)
+            phase._defused = True
+            strike()
+            strike()
+        gui._hint = False
+
     # note the strikes on the GUI
     gui._lstrikes["text"] = f"Strikes left: {strikes_left}"
     # too many strikes -> explode!
@@ -185,8 +199,7 @@ def turn_off():
         pin.value = True
     
     # stop the audio when the bomb is defused or explodes
-    # gui.stop_audio()
-    #ticking_audio.stop()
+    audio.stop_audio()
 
 ######
 # MAIN
