@@ -416,7 +416,7 @@ class Toggles(PhaseThread):
             return bin(self._value)[2:].zfill(4)
 
 class Wires(PhaseThread):
-    def __init__(self, component, target, name = "Toggles"):
+    def __init__(self, component, target, name = "Wires"):
         super().__init__(name, component, target)
         self._value = self._get_value()
         self._prev_value = self._value
