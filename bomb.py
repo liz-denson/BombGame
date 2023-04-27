@@ -137,9 +137,13 @@ def check_phases():
             # reset the toggles
             toggles._failed = False
 
+    # check if the hint button is pressed
     if (gui._hint):
+        # if there are more than 2 strikes left
         if (strikes_left > 2):
+            # create a list to hold active threads
             active_threads = []
+            # add active phases to the list
             if (keypad._running):
                 active_threads.append(keypad)
             if (toggles._running):
@@ -148,10 +152,14 @@ def check_phases():
                 active_threads.append(wires)
             if (button._running):
                 active_threads.append(button)
+            # randomly choose a phase from the active threads
             phase = choice(active_threads)
+            # mark the chosen phase as defused
             phase._defused = True
+            # call the strike function twice
             strike()
             strike()
+        # reset the hint flag
         gui._hint = False
 
     # note the strikes on the GUI
