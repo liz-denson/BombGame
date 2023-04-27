@@ -88,14 +88,6 @@ class Lcd(Frame):
    # method for the hint button
     def hint(self):
         self._hint = True
-#         self._hint = hint
-#         if (self._strikes_left > 2):
-#             # Pick a random phase
-#             random_phase = choice(self._active_phases)
-#             # Solve the random phase
-#             random_phase._defused = True
-#             # Add 2 strikes
-#             self._strikes_left -= 2
 
     # pauses the timer
     def pause(self):
