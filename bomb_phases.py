@@ -16,7 +16,8 @@ import os
 import sys
 # import audio
 import audio
-from tkinter import PhotoImage
+# import photimage class from tkinter module
+from PIL import Image, ImageTk, ImageSequence
 
 #########
 # classes
@@ -114,23 +115,69 @@ class Lcd(Frame):
         self._bquit = tkinter.Button(self, bg="red", fg="white", font=("Courier New", 18), text="Quit", anchor=CENTER, command=self.quit)
         self._bquit.grid(row=1, column=2, pady=40)
 
-        # Display the appropriate image and play the corresponding sound
+        # display the appropriate animated image based on success status
         if success:
-            image_file = "success.png"
-            sound_file = "success.mp3"
+            # set the image and sound file path for the success gif
+            image_file = os.path.join(os.getcwd(), "success.gif")
+            sound_file = os.path.join(os.getcwd(), "success.mp3")
         else:
-            image_file = "explosion.png"
-            sound_file = "explosion.mp3"
+            # set the image and sound file path for the explosion gif
+            image_file = os.path.join(os.getcwd(), "explosion.gif")
+            sound_file = os.path.join(os.getcwd(), "explosion.mp3")
+        # call the function to display the right gif and play the sound file
+        self.display_animated_image(image_file, sound_file)
 
-        # Load and play the sound
+    # define a function to display an animated image
+    def display_animated_image(self, image_file, sound_file):
+        # create a frame to hold the animated image
+        animation_frame = Frame(self)
+        # position the frame in the grid
+        animation_frame.grid(row=0, column=0, columnspan=3, sticky=EW)
+
+        # open the image file
+        animation_image = Image.open(image_file)
+        # create a PhotoImage object using the opened image
+        animation_gif = ImageTk.PhotoImage(animation_image)
+        # initialize the frame number to 0
+        animation_gif.frame_num = 0
+
+        # create a list to store all the animation frames
+        animation_frames = []
+        # iterate through the frames of the animation image
+        for frame in ImageSequence.Iterator(animation_image):
+            # append the PhotoImage object for each frame to the animation_frames list
+            animation_frames.append(ImageTk.PhotoImage(frame))
+        # store the number of frames in the animation
+        animation_gif.n_frames = len(animation_frames)
+
+        # create a label to display the animation
+        animation_label = Label(animation_frame, image=animation_gif)
+        # pack the label inside the frame
+        animation_label.pack()
+        
+        # initialize pygame.mixer
+        pygame.mixer.init()
+        # load the sound file
         pygame.mixer.music.load(sound_file)
+        # play the sound file
         pygame.mixer.music.play()
 
-        # Load and display the image using tkinter PhotoImage
-        image = PhotoImage(file=image_file)
-        self._lscroll["image"] = image
-        self._lscroll.image = image
-        self._lscroll.grid(row=0, column=0, columnspan=3, sticky=EW)
+        # define an inner function to animate the gif
+        def animate():
+            # check if there are more frames to display
+            if animation_gif.frame_num < animation_gif.n_frames - 1:
+                # update the frame number, looping back to 0 if it reaches the end
+                frame_num = (animation_gif.frame_num + 1) % animation_gif.n_frames
+                # set the current frame number
+                animation_gif.frame_num = frame_num
+                # update the label's image to display the next frame
+                animation_label.configure(image=animation_frames[frame_num])
+                    
+                # call the animate function after 50ms to keep the animation going
+                window.after(50, animate)
+
+            # start the animation
+            animate()
 
     # re-attempts the bomb (after an explosion or a successful defusion)
     def retry(self):
