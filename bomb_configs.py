@@ -6,8 +6,8 @@
 
 # constants
 DEBUG = True        # debug mode?
-RPi = True           # is this running on the RPi?
-ANIMATE = True       # animate the LCD text?
+RPi = False           # is this running on the RPi?
+ANIMATE = False       # animate the LCD text?
 SHOW_BUTTONS = True # show the Pause and Quit buttons on the main LCD GUI?
 COUNTDOWN = 300      # the initial bomb countdown value (seconds)
 NUM_STRIKES = 5      # the total strikes allowed before the bomb "explodes"
@@ -147,21 +147,21 @@ def genKeypadCombination():
         return combination
 
     # the list of keywords and matching passphrases
-    keywords = { "BANDIT": "RIVER",\
-                 "BUCKLE": "FADED",\
-                 "CANOPY": "FOXES",\
-                 "DEBATE": "THROW",\
-                 "FIERCE": "TRICK",\
-                 "GIFTED": "CYCLE",\
-                 "IMPACT": "STOLE",\
-                 "LONELY": "TOADY",\
-                 "MIGHTY": "ALOOF",\
-                 "NATURE": "CARVE",\
-                 "REBORN": "CLIMB",\
-                 "RECALL": "FEIGN",\
-                 "SYSTEM": "LEAVE",\
-                 "TAKING": "SPINY",\
-                 "WIDELY": "BOUND" }
+    keywords = { "BANDIT": "TOWEL",\
+                 "BUCKLE": "MATCH",\
+                 "CANOPY": "PIANO",\
+                 "DEBATE": "DAVID",\
+                 "FIERCE": "CLOCK",\
+                 "GIFTED": "TABLE",\
+                 "IMPACT": "FENCE",\
+                 "LONELY": "SEVEN",\
+                 "MIGHTY": "SHORT",\
+                 "NATURE": "STONE",\
+                 "REBORN": "LIGHT",\
+                 "RECALL": "MONEY",\
+                 "SYSTEM": "WRONG",\
+                 "TAKING": "GLOVE",\
+                 "WIDELY": "STAMP" }
     # the rotation cipher key
     rot = randint(1, 25)
 
@@ -197,9 +197,12 @@ button_target = None
 # G is the first numeric digit in the serial number
 if (button_color == "G"):
     button_target = [ n for n in serial if n.isdigit() ][0]
+    wires_target = 9
+
 # B is the last numeric digit in the serial number
 elif (button_color == "B"):
     button_target = [ n for n in serial if n.isdigit() ][-1]
+    wires_target = 12
 
 if (DEBUG):
     print(f"Serial number: {serial}")
