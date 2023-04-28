@@ -72,6 +72,10 @@ def setup_phases():
 def check_phases():
     global active_phases
     
+    # pause audio if the timer is paused
+    if timer._paused:
+        audio.pause_audio()
+    
     # check the timer
     if (timer._running):
         # update the GUI
@@ -83,6 +87,11 @@ def check_phases():
         gui.after(100, gui.conclusion, False)
         # don't check any more phases
         return
+    
+    # resume audio if the timer is not paused
+    if not timer._paused:
+        audio.resume_audio()
+    
     # check the keypad
     if (keypad._running):
         # update the GUI
