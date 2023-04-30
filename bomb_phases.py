@@ -20,6 +20,7 @@ from PIL import Image, ImageTk, ImageSequence
 #########
 # classes
 #########
+
 # the LCD display GUI
 class Lcd(Frame):
     def __init__(self, window):
