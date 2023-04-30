@@ -1,8 +1,8 @@
-#################################
+######################################
 # CSC 102 Defuse the Bomb Project
 # Main program
-# Team: 
-#################################
+# Team: Liz Denson & Caroline Holland
+######################################
 
 # import the configs
 from bomb_configs import *
@@ -72,26 +72,25 @@ def setup_phases():
 def check_phases():
     global active_phases
     
-    # pause audio if the timer is paused
-    if timer._paused:
-        audio.pause_audio()
-    
     # check the timer
     if (timer._running):
         # update the GUI
         gui._ltimer["text"] = f"Time left: {timer}"
+        if timer._paused:
+            # pause the audio when timer is paused
+            audio.pause_audio()
+        # resume the audio when timer is running
+        else:
+            audio.resume_audio()
     else:
+        # pause the audio
+        audio.pause_audio()
         # the countdown has expired -> explode!
         # turn off the bomb and render the conclusion GUI
         turn_off()
         gui.after(100, gui.conclusion, False)
         # don't check any more phases
         return
-    
-    # resume audio if the timer is not paused
-    if not timer._paused:
-        audio.resume_audio()
-    
     # check the keypad
     if (keypad._running):
         # update the GUI
@@ -145,7 +144,7 @@ def check_phases():
             strike()
             # reset the toggles
             toggles._failed = False
-
+    
     # check if the hint button is pressed
     if (gui._hint):
         # if there are more than 2 strikes left
@@ -171,6 +170,7 @@ def check_phases():
         # reset the hint flag
         gui._hint = False
 
+                
     # note the strikes on the GUI
     gui._lstrikes["text"] = f"Strikes left: {strikes_left}"
     # too many strikes -> explode!
