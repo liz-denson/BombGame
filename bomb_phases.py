@@ -1,8 +1,8 @@
-#################################
+######################################
 # CSC 102 Defuse the Bomb Project
 # GUI and Phase class definitions
-# Team: 
-#################################
+# Team: Liz Denson & Caroline Holland
+######################################
 
 # import the configs
 from bomb_configs import *
@@ -14,8 +14,6 @@ import pygame
 from time import sleep
 import os
 import sys
-# import audio
-import audio
 # import photimage class from tkinter module
 from PIL import Image, ImageTk, ImageSequence
 
@@ -71,8 +69,8 @@ class Lcd(Frame):
             # the pause button (pauses the timer)
             self._bpause = tkinter.Button(self, bg="green", fg="white", font=("Courier New", 18), text="Pause", anchor=CENTER, command=self.pause)
             self._bpause.grid(row=6, column=0, pady=40)
-            # the hint button
-            self._bhint = tkinter.Button(self, bg="yellow", fg="white", font=("Courier New", 18), text="Hint", anchor=CENTER, command=self.hint)
+            # the hint button (defuses a random phase and reduces strikes left by 2)
+            self._bhint = tkinter.Button(self, bg="yellow", fg="black", font=("Courier New", 18), text="Hint", anchor=CENTER, command=self.hint)
             self._bhint.grid(row=6, column=1, pady=40)
             # the quit button
             self._bquit = tkinter.Button(self, bg="red", fg="white", font=("Courier New", 18), text="Quit", anchor=CENTER, command=self.quit)
@@ -86,7 +84,7 @@ class Lcd(Frame):
     def setButton(self, button):
         self._button = button
         
-   # method for the hint button
+   # hint button method
     def hint(self):
         self._hint = True
 
@@ -107,39 +105,38 @@ class Lcd(Frame):
         self._lstrikes.destroy()
         if (SHOW_BUTTONS):
             self._bpause.destroy()
+            self._bhint.destroy()
             self._bquit.destroy()
             
         # add the quit and retry buttons
-        self._bretry = tkinter.Button(self, bg="red", fg="white", font=("Courier New", 18), text="Retry", anchor=CENTER, command=self.retry)
+        self._bretry = tkinter.Button(self, bg="green", fg="white", font=("Courier New", 18), text="Retry", anchor=CENTER, command=self.retry)
         self._bretry.grid(row=1, column=0, pady=40)
         self._bquit = tkinter.Button(self, bg="red", fg="white", font=("Courier New", 18), text="Quit", anchor=CENTER, command=self.quit)
         self._bquit.grid(row=1, column=2, pady=40)
 
-        # display the appropriate animated image based on success status
+        # if success is true
         if success:
-            # set the image and sound file path for the success gif
+            # set the gif image file path for the success gif
             image_file = os.path.join(os.getcwd(), "success.gif")
+            # set the sound file path for the success mp3
             sound_file = os.path.join(os.getcwd(), "success.mp3")
         else:
-            # set the image and sound file path for the explosion gif
+            # set the image file path for the explosion gif
             image_file = os.path.join(os.getcwd(), "explosion.gif")
+            # set the sound file path for the explosion mp3
             sound_file = os.path.join(os.getcwd(), "explosion.mp3")
         # call the function to display the right gif and play the sound file
         self.display_animated_image(image_file, sound_file)
 
-    # define a function to display an animated image
+    # display an animated image
     def display_animated_image(self, image_file, sound_file):
-        # create a frame to hold the animated image
-        animation_frame = Frame(self)
+        # create a frame to hold the animated image with a black background
+        animation_frame = Frame(self, bg="black")
         # position the frame in the grid
         animation_frame.grid(row=0, column=0, columnspan=3, sticky=EW)
 
         # open the image file
         animation_image = Image.open(image_file)
-        # create a PhotoImage object using the opened image
-        animation_gif = ImageTk.PhotoImage(animation_image)
-        # initialize the frame number to 0
-        animation_gif.frame_num = 0
 
         # create a list to store all the animation frames
         animation_frames = []
@@ -148,13 +145,13 @@ class Lcd(Frame):
             # append the PhotoImage object for each frame to the animation_frames list
             animation_frames.append(ImageTk.PhotoImage(frame))
         # store the number of frames in the animation
-        animation_gif.n_frames = len(animation_frames)
+        num_frames = len(animation_frames)
 
-        # create a label to display the animation
-        animation_label = Label(animation_frame, image=animation_gif)
+        # create a label to display the animation with a black background
+        animation_label = Label(animation_frame, bg="black")
         # pack the label inside the frame
         animation_label.pack()
-        
+
         # initialize pygame.mixer
         pygame.mixer.init()
         # load the sound file
@@ -163,21 +160,22 @@ class Lcd(Frame):
         pygame.mixer.music.play()
 
         # define an inner function to animate the gif
-        def animate():
-            # check if there are more frames to display
-            if animation_gif.frame_num < animation_gif.n_frames - 1:
-                # update the frame number, looping back to 0 if it reaches the end
-                frame_num = (animation_gif.frame_num + 1) % animation_gif.n_frames
-                # set the current frame number
-                animation_gif.frame_num = frame_num
-                # update the label's image to display the next frame
-                animation_label.configure(image=animation_frames[frame_num])
-                    
-                # call the animate function after 50ms to keep the animation going
-                window.after(50, animate)
+        def animate(frame_num=0):
+            # make animation_label, animation_frames, and num_frames accessible inside the function
+            nonlocal animation_label, animation_frames, num_frames
 
-            # start the animation
-            animate()
+            # update the label's image to display the current frame
+            animation_label.configure(image=animation_frames[frame_num])
+
+            # check if there are more frames to display
+            if frame_num < num_frames - 1:
+                # update the frame number
+                next_frame_num = frame_num + 1
+                # call the animate function after 50ms to keep the animation going
+                self.after(50, animate, next_frame_num)
+
+        # start the animation
+        animate()
 
     # re-attempts the bomb (after an explosion or a successful defusion)
     def retry(self):
@@ -214,7 +212,7 @@ class PhaseThread(Thread):
         self._value = None
         # phase threads are either running or not
         self._running = False
-
+        
 # the timer phase
 class Timer(PhaseThread):
     def __init__(self, component, initial_value, name="Timer"):
@@ -228,7 +226,7 @@ class Timer(PhaseThread):
         self._sec = ""
         # by default, each tick is 1 second
         self._interval = 1
-
+        
     # runs the thread
     def run(self):
         self._running = True
@@ -245,19 +243,19 @@ class Timer(PhaseThread):
                 self._value -= 1
             else:
                 sleep(0.1)
-
+                
     # updates the timer (only internally called)
     def _update(self):
         self._min = f"{self._value // 60}".zfill(2)
         self._sec = f"{self._value % 60}".zfill(2)
-
+        
     # pauses and unpauses the timer
     def pause(self):
         # toggle the paused state
         self._paused = not self._paused
         # blink the 7-segment display when paused
         self._component.blink_rate = (2 if self._paused else 0)
-
+        
     # returns the timer as a string (mm:ss)
     def __str__(self):
         return f"{self._min}:{self._sec}"
@@ -268,7 +266,7 @@ class Keypad(PhaseThread):
         super().__init__(name, component, target)
         # the default value is an empty string
         self._value = ""
-
+        
     # runs the thread
     def run(self):
         self._running = True
@@ -292,7 +290,7 @@ class Keypad(PhaseThread):
                 elif (self._value != self._target[0:len(self._value)]):
                     self._failed = True
             sleep(0.1)
-
+            
     # returns the keypad combination as a string
     def __str__(self):
         if (self._defused):
@@ -314,7 +312,7 @@ class Button(PhaseThread):
         self._color = color
         # we need to know about the timer (7-segment display) to be able to determine correct pushbutton releases in some cases
         self._timer = timer
-
+        
     # runs the thread
     def run(self):
         self._running = True
@@ -343,163 +341,157 @@ class Button(PhaseThread):
                     # note that the pushbutton was released
                     self._pressed = False
             sleep(0.1)
-
+            
     # returns the pushbutton's state as a string
     def __str__(self):
         if (self._defused):
             return "DEFUSED"
         else:
             return str("Pressed" if self._value else "Released")
-
-class NumericPhase(PhaseThread):
-    def __init__(self, component, target, name= "Toggles"):
+        
+# the toggle phase
+class Toggles(PhaseThread):
+    # initialize the toggles class
+    def __init__(self, component, target, name = "Toggles"):
+        # call the superclass constructor
         super().__init__(name, component, target)
-        self._value = self._get_int_value()
+        # get the initial value from the component
+        self._value = self._get_value()
+        # set the previous value as the initial value
         self._prev_value = self._value
+    
     
     # runs the thread
     def run(self):
+        # set running to true
         self._running = True
+        # while thread is running
         while (self._running):
-            self._value = self._get_int_value()
-            if (self._value == self._target):
-                self._defused = True
-            elif (self._value != self._prev_value):
-                if (self._check_wrong_state()):
-                    self._failed = True
-                self._prev_value = self._value
-                                
-            sleep(0.1)
-    
-    def _get_int_value(self):
-        values = []
-        for pin in self._component:
-            values.append(pin.value)
-        
-        bit_values = []
-        for v in values:
-            #changes bit to boolean
-            bit_values.append(str(int(v)))
-        
-        #prints the string without spaces
-        int_value = "".join(bit_values)
-        
-        #convert to integer
-        int_value = int(int_value,2)
-        
-        return int_value
-    
-    def _check_wrong_state(self):
-        #returns T if a toggle is in wrong position; F otherwise
-        #get index of toggled switch using self._value and self._prev_value
-        #see if the matching index in self._target is correct
-        current = bin(self._value)[2:].zfill(4)
-        prev = bin(self._prev_value)[2:].zfill(4)
-        target = bin(self._target)[2:].zfill(4)
-        for i in range(len(current)):
-            if (current[i] != prev[i]):
-                #if true returns False; if false returns True 
-                return (not target[i] == current[i])
-                          
-    # returns the toggle switches state as a string
-    def __str__(self):
-        if (self._defused):
-            return "DEFUSED"
-        else:
-            return f"{bin(self._value)[2:].zfill(4)}/{self._value}"
-        
-class Toggles(PhaseThread):
-    def __init__(self, component, target, name = "Toggles"):
-        super().__init__(name, component, target)
-        self._value = self._get_value()
-        self._prev_value = self._value
-        
-    def run(self):
-        self._running = True
-        while (self._running):
+            # get the current value from the component
             self._value = self._get_value()
+            # check if the current value matches the target value
             if (self._value == self._target):
+                # set defused to true if target value is reached
                 self._defused = True
+            # check if the current value has changed
             elif (self._value != self._prev_value):
+                # check if the current value is in a wrong state
                 if (self._check_wrong_state()):
+                    # set failed to True if wrong state
                     self._failed = True
+                # update the previous value to the current value
                 self._prev_value = self._value
-            
+            # sleep
             sleep(0.1)
-        
-    def _get_value(self):
-        value = []
-        for pin in self._component:
-            value.append(str(int(pin.value)))
-        # [ "0", "1", "1", "0" ]
-        value = "".join(value)
-        # "0110"
-        value = int(value, 2)
-        return value
-    
-    def _check_wrong_state(self):
-        value = bin(self._value)[2:].zfill(4) # "0110"
-        prev = bin(self._prev_value)[2:].zfill(4)
-        target = bin(self._target)[2:].zfill(4)
-        for i in range(len(value)):
-            if (value[i] != prev[i]):
-                if (value[i] == target[i]):
-                    return False
-                else:
-                    return True
-    
-    def __str__(self):
-        if (self._defused):
-            return "DEFUSED"
-        else:
-            return bin(self._value)[2:].zfill(4)
 
-class Wires(PhaseThread):
-    def __init__(self, component, target, name = "Wires"):
-        super().__init__(name, component, target)
-        self._value = self._get_value()
-        self._prev_value = self._value
-        
-    def run(self):
-        self._running = True
-        while (self._running):
-            self._value = self._get_value()
-            if (self._value == self._target):
-                self._defused = True
-            elif (self._value != self._prev_value):
-                if (self._check_wrong_state()):
-                    self._failed = True
-                self._prev_value = self._value
-            
-            sleep(0.1)
-        
+    # get the current value from the component
     def _get_value(self):
         value = []
+        # iterate through the component pins
         for pin in self._component:
+            # append the pin value as a string to the value list
             value.append(str(int(pin.value)))
-        # [ "0", "1", "1", "0" ]
+        # join the pin values into a single string
         value = "".join(value)
-        # "0110"
+        # convert the string value to an integer
         value = int(value, 2)
         return value
-    
+
+    # check if the current state is wrong
     def _check_wrong_state(self):
-        value = bin(self._value)[2:].zfill(5) # "0110"
-        prev = bin(self._prev_value)[2:].zfill(5)
-        target = bin(self._target)[2:].zfill(5)
+        # convert the current value to binary string
+        value = bin(self._value)[2:].zfill(4)
+        # convert the previous value to binary string
+        prev = bin(self._prev_value)[2:].zfill(4)
+        # convert the target value to binary string
+        target = bin(self._target)[2:].zfill(4)
+        # iterate through the binary strings
         for i in range(len(value)):
+            # if a bit is different from the previous state
             if (value[i] != prev[i]):
+                # check if the bit is same as target bit
                 if (value[i] == target[i]):
                     return False
                 else:
                     return True
-    
+
+    # returns the toggle's state as a string
     def __str__(self):
         if (self._defused):
             return "DEFUSED"
         else:
-            return bin(self._value)[2:].zfill(5)
+            # return the current value as a binary string
+            return bin(self._value)[2:].zfill(4)
         
-    
-    
-    
+# the wire phase
+class Wires(PhaseThread):
+    # initialize the Wires class
+    def __init__(self, component, target, name = "Wires"):
+        # call the superclass constructor
+        super().__init__(name, component, target)
+        # get the initial value from the component
+        self._value = self._get_value()
+        # set the previous value as the initial value
+        self._prev_value = self._value
+
+    # runs the thread
+    def run(self):
+        # set running to True
+        self._running = True
+        # while thread is running
+        while (self._running):
+            # get the current value from the component
+            self._value = self._get_value()
+            # check if the current value matches the target value
+            if (self._value == self._target):
+                # set defused to true if target value is reached
+                self._defused = True
+            # check if the current value has changed
+            elif (self._value != self._prev_value):
+                # check if the current value is in a wrong state
+                if (self._check_wrong_state()):
+                    # set failed to True if wrong state
+                    self._failed = True
+                # update the previous value to the current value
+                self._prev_value = self._value
+            # sleep
+            sleep(0.1)
+
+    # get the current value from the component
+    def _get_value(self):
+        value = []
+        # iterate through the component pins
+        for pin in self._component:
+            # append the pin value as a string to the value list
+            value.append(str(int(pin.value)))
+        # join the pin values into a single string
+        value = "".join(value)
+        # convert the string value to an integer
+        value = int(value, 2)
+        return value
+
+    # check if the current state is wrong
+    def _check_wrong_state(self):
+        # convert the current value to binary string
+        value = bin(self._value)[2:].zfill(5)
+        # convert the previous value to binary string
+        prev = bin(self._prev_value)[2:].zfill(5)
+        # convert the target value to binary string
+        target = bin(self._target)[2:].zfill(5)
+        # iterate through the binary strings
+        for i in range(len(value)):
+            # if a bit is different from the previous state
+            if (value[i] != prev[i]):
+                # check if the bit is same as target bit
+                if (value[i] == target[i]):
+                    return False
+                else:
+                    return True
+
+    # returns the wire's state as a string
+    def __str__(self):
+        if (self._defused):
+            return "DEFUSED"
+        else:
+            # return the current value as a binary string
+            return bin(self._value)[2:].zfill(5)
