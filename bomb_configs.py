@@ -25,6 +25,7 @@ if (RPi):
 #################################
 # setup the electronic components
 #################################
+
 # 7-segment display
 # 4 pins: 5V(+), GND(-), SDA, SCL
 #         ----------7SEG---------
@@ -87,6 +88,7 @@ if (RPi):
 ###########
 # functions
 ###########
+
 # generates the bomb's serial number
 #  it should be made up of alphaneumeric characters, and include at least 3 digits and 3 letters
 #  the sum of the digits should be in the range 1..15 to set the toggles target
@@ -176,6 +178,7 @@ def genKeypadCombination():
 ###############################
 # generate the bomb's specifics
 ###############################
+
 # generate the bomb's serial number (which also gets us the toggle and jumper target values)
 #  serial: the bomb's serial number
 #  toggles_target: the toggles phase defuse value
