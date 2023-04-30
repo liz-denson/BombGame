@@ -1,13 +1,13 @@
-#################################
+######################################
 # CSC 102 Defuse the Bomb Project
 # Configuration file
-# Team: 
-#################################
+# Team: Liz Denson & Caroline Holland
+######################################
 
 # constants
 DEBUG = True        # debug mode?
-RPi = False           # is this running on the RPi?
-ANIMATE = False       # animate the LCD text?
+RPi = True           # is this running on the RPi?
+ANIMATE = True       # animate the LCD text?
 SHOW_BUTTONS = True # show the Pause and Quit buttons on the main LCD GUI?
 COUNTDOWN = 300      # the initial bomb countdown value (seconds)
 NUM_STRIKES = 5      # the total strikes allowed before the bomb "explodes"
@@ -197,11 +197,12 @@ button_target = None
 # G is the first numeric digit in the serial number
 if (button_color == "G"):
     button_target = [ n for n in serial if n.isdigit() ][0]
+    # disconnect all wires except "B" and "E"
     wires_target = 9
-
 # B is the last numeric digit in the serial number
 elif (button_color == "B"):
     button_target = [ n for n in serial if n.isdigit() ][-1]
+    # disconnect all wires except "A" and "C"
     wires_target = 12
 
 if (DEBUG):
