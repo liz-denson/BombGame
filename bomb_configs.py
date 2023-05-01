@@ -205,7 +205,7 @@ if (button_color == "G"):
 # B is the last numeric digit in the serial number
 elif (button_color == "B"):
     button_target = [ n for n in serial if n.isdigit() ][-1]
-    # disconnect all wires except "A" and "C"
+    # disconnect all wires except "B" and "C"
     wires_target = 12
 
 if (DEBUG):
